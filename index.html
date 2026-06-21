@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EchoType — Adaptive Typing Trainer</title>
+<meta name="description" content="Personalized typing practice that learns your weaknesses. Your mistakes become your challenges. Improve typing speed with AI-adaptive text generation.">
+<meta name="keywords" content="typing practice, typing trainer, improve typing speed, adaptive typing, personalized typing, WPM, touch typing">
+<meta name="author" content="EchoType">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌨️</text></svg>">
+<link rel="canonical" href="https://echotype.app/">
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="EchoType — Adaptive Typing Trainer">
+<meta property="og:description" content="Your mistakes become your challenges. Personalized typing practice that learns your weaknesses and makes you faster.">
+<meta property="og:url" content="https://echotype.app/">
+<meta property="og:image" content="https://echotype.app/og-image.png">
+<meta property="og:site_name" content="EchoType">
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="EchoType — Adaptive Typing Trainer">
+<meta name="twitter:description" content="Your mistakes become your challenges. Personalized typing practice that learns your weaknesses.">
+<meta name="twitter:image" content="https://echotype.app/og-image.png">
+<!-- Analytics (Plausible - privacy-respecting, no cookies, GDPR compliant) -->
+<script defer data-domain="echotype.app" src="https://plausible.io/js/script.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a12;--surface:#12121f;--surface2:#1a1a2e;--border:#2a2a44;
+  --cyan:#00e5ff;--purple:#b388ff;--green:#69f0ae;--red:#ff5252;
+  --yellow:#ffd740;--white:#e8e8f0;--dim:#555578;
+  --grad:linear-gradient(135deg,var(--cyan),var(--purple));
+}
+html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--white);overflow-x:hidden}
+canvas#particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+#app{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:20px 24px;min-height:100vh;display:flex;flex-direction:column;opacity:0;transition:opacity .4s ease}
+#app.ready{opacity:1}
+
+.header{text-align:center;padding:18px 0 10px;display:flex;align-items:center;justify-content:center;gap:12px}
+.header h1{font-size:2.2rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-1px}
+.header .tagline{font-size:.82rem;color:var(--dim);margin-top:2px}
+.header-left{flex:1;text-align:center}
+.trophy-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:1.1rem;transition:all .2s;position:relative}
+.trophy-btn:hover{border-color:var(--yellow);transform:scale(1.1)}
+.trophy-btn .badge{position:absolute;top:-4px;right:-4px;background:var(--yellow);color:#000;font-size:.55rem;width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700}
+
+.stats-bar{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:14px 0 8px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 18px;text-align:center;min-width:100px;transition:all .3s}
+.stat .label{font-size:.65rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim);margin-bottom:2px}
+.stat .value{font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums}
+.stat .value.wpm{color:var(--cyan)}.stat .value.acc{color:var(--green)}.stat .value.streak{color:var(--yellow)}.stat .value.combo{color:var(--purple)}
+@keyframes comboPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+.stat .value.combo.active{animation:comboPulse .5s ease infinite;text-shadow:0 0 14px rgba(179,136,255,.6)}
+.stat.combo-highlight{border-color:var(--purple);box-shadow:0 0 12px rgba(179,136,255,.2)}
+
+.controls{display:flex;justify-content:center;gap:8px;margin:0 0 6px}
+.sound-btn{background:var(--surface);border:1px solid var(--border);color:var(--dim);font-size:.7rem;padding:4px 14px;border-radius:20px;cursor:pointer;transition:all .2s;font-family:inherit}
+.sound-btn:hover{border-color:var(--cyan);color:var(--white)}
+.sound-btn.on{border-color:var(--cyan);color:var(--cyan)}
+
+.tabs{display:flex;gap:8px;justify-content:center;margin:6px 0 14px;flex-wrap:wrap}
+.tab{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 18px;font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--dim);font-weight:600}
+.tab:hover{border-color:var(--cyan);color:var(--white)}
+.tab.active{background:linear-gradient(135deg,rgba(0,229,255,.15),rgba(179,136,255,.15));border-color:var(--cyan);color:var(--white)}
+.tab .daily-dot{display:inline-block;width:6px;height:6px;background:var(--green);border-radius:50%;margin-left:5px;vertical-align:middle}
+.tab .mode-sublabel{display:block;font-size:.6rem;color:var(--dim);font-weight:400;margin-top:1px}
+
+.typing-area{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px 36px;margin:0 0 16px;position:relative;flex:0 0 auto;transition:border-color .3s,box-shadow .3s}
+.typing-area::before{content:'';position:absolute;inset:-1px;border-radius:16px;padding:1px;background:var(--grad);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:.3;pointer-events:none;transition:opacity .3s}
+.typing-area.focused{border-color:rgba(0,229,255,.4);box-shadow:0 0 24px rgba(0,229,255,.08)}
+.typing-area.focused::before{opacity:.6}
+@keyframes breathe{0%,100%{box-shadow:0 0 12px rgba(0,229,255,.03)}50%{box-shadow:0 0 24px rgba(0,229,255,.1)}}
+.typing-area.idle{animation:breathe 3s ease-in-out infinite}
+.streak-fire{position:absolute;top:12px;right:16px;font-size:1.3rem;opacity:0;transition:opacity .3s,transform .3s;transform:scale(0.5)}
+.streak-fire.visible{opacity:1;transform:scale(1)}
+#text-display{font-size:1.75rem;font-weight:700;line-height:2.2;font-family:'Courier New',Consolas,monospace;letter-spacing:.5px;min-height:140px;white-space:pre-wrap;word-break:break-word;user-select:none;outline:none}
+#text-display .char{transition:color .08s,transform .1s,opacity .1s}
+#text-display .char.correct{color:var(--green);animation:charPop .15s ease}
+#text-display .char.wrong{color:var(--red);text-decoration:underline;text-decoration-color:rgba(255,82,82,.4);animation:charShake .2s ease}
+@keyframes charPop{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+@keyframes charShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}
+#text-display .char.current{color:var(--white);position:relative}
+#text-display .char.current::before{content:'';position:absolute;left:-1px;top:4px;width:2px;height:1.6em;background:var(--cyan);border-radius:1px;animation:caretBlink 1s step-end infinite;box-shadow:0 0 8px rgba(0,229,255,.5)}
+#text-display .char.pending{color:var(--dim)}
+#text-display .char.ghost-marker{background:rgba(255,215,64,.18);border-radius:2px}
+@keyframes caretBlink{50%{opacity:0}}
+
+.custom-input-area{display:none;flex-direction:column;align-items:center;gap:14px;padding:20px 0}
+.custom-input-area.visible{display:flex}
+.custom-input-area textarea{width:100%;min-height:120px;max-height:240px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;color:var(--white);font-family:'Courier New',Consolas,monospace;font-size:.9rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s}
+.custom-input-area textarea:focus{border-color:var(--cyan)}
+.custom-input-area textarea::placeholder{color:var(--dim)}
+.custom-input-area .custom-start-btn{background:var(--grad);border:none;color:#000;font-weight:700;padding:10px 28px;border-radius:10px;font-size:.9rem;cursor:pointer;transition:transform .15s;font-family:inherit}
+.custom-input-area .custom-start-btn:hover{transform:scale(1.05)}
+.custom-input-area .custom-start-btn:active{transform:scale(.97)}
+.custom-input-area .custom-start-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+.prompt{text-align:center;color:var(--dim);font-size:.8rem;margin-top:10px}
+.prompt kbd{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 7px;font-size:.75rem}
+.prompt .ghost-status{font-weight:600}
+.prompt .ghost-ahead{color:var(--green)}
+.prompt .ghost-behind{color:var(--red)}
+
+.progress-wrap{height:6px;background:var(--surface2);border-radius:3px;margin:12px 0 0;overflow:hidden}
+.progress-bar{height:100%;background:var(--grad);border-radius:3px;transition:width .15s ease;box-shadow:0 0 10px rgba(0,229,255,.35)}
+
+.keyboard-section{margin:14px 0}
+.section-title{font-size:.72rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim);margin-bottom:8px;text-align:center}
+.keyboard{display:flex;flex-direction:column;align-items:center;gap:4px}
+.kb-row{display:flex;gap:4px}
+.key{width:38px;height:38px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:600;border:1px solid var(--border);background:var(--surface);transition:all .12s;position:relative}
+.key.pressed{transform:scale(.85) translateY(2px);background:var(--cyan);border-color:var(--cyan);color:#000;box-shadow:0 0 12px rgba(0,229,255,.4)}
+.key .error-count{position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:.5rem;width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;opacity:0;transition:opacity .2s}
+.key .error-count.visible{opacity:1}
+.key.space{width:200px}
+
+.dna-section{margin:14px 0}
+.dna-container{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;align-items:center;gap:20px}
+#dna-canvas{border-radius:8px;flex-shrink:0}
+.dna-info{flex:1}
+.dna-detail{color:var(--dim);font-size:.78rem;margin:4px 0;line-height:1.5}
+.dna-label{color:var(--white);font-weight:600;font-size:.82rem;margin-bottom:6px}
+
+.graph-section{margin:14px 0}
+.graph-container{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;height:140px;position:relative}
+canvas#graph{width:100%;height:100%}
+
+.overlay{position:fixed;inset:0;background:rgba(10,10,18,.85);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(4px)}
+.overlay.show{opacity:1;pointer-events:all}
+.overlay-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px 44px;max-width:480px;width:90%;text-align:center;transform:scale(.92);transition:transform .3s}
+.overlay.show .overlay-card{transform:scale(1)}
+.overlay-card h2{font-size:1.5rem;margin-bottom:6px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.overlay-card .big-stat{font-size:3rem;font-weight:800;margin:12px 0}
+.overlay-card .detail{color:var(--dim);font-size:.85rem;margin:4px 0}
+.overlay-card .ghost-result{margin:10px 0;font-size:1rem;font-weight:700}
+.overlay-card canvas{margin:12px auto;display:block}
+.overlay-card button{margin-top:18px;background:var(--grad);border:none;color:#000;font-weight:700;padding:10px 28px;border-radius:10px;font-size:.9rem;cursor:pointer;transition:transform .15s;font-family:inherit}
+.overlay-card button:hover{transform:scale(1.05)}
+.overlay-card button:active{transform:scale(.97)}
+.overlay-card .btn-secondary{background:transparent;border:1px solid var(--border);color:var(--dim);margin-left:8px}
+.overlay-card .btn-share{background:transparent;border:1px solid var(--cyan);color:var(--cyan);margin-left:8px}
+.overlay-card .btn-share:hover{background:rgba(0,229,255,.1)}
+
+.toast-container{position:fixed;top:20px;right:20px;z-index:200;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--surface);border:1px solid var(--yellow);border-radius:12px;padding:12px 18px;display:flex;align-items:center;gap:10px;pointer-events:auto;transform:translateX(120%);transition:transform .4s cubic-bezier(.2,.9,.3,1);box-shadow:0 4px 20px rgba(0,0,0,.4);max-width:320px}
+.toast.show{transform:translateX(0)}
+.toast .toast-icon{font-size:1.3rem;flex-shrink:0}
+.toast .toast-text{font-size:.8rem;color:var(--white)}
+.toast .toast-title{font-weight:700;margin-bottom:1px}
+.toast .toast-desc{color:var(--dim);font-size:.7rem}
+
+.achievement-overlay{position:fixed;inset:0;background:rgba(10,10,18,.9);z-index:150;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(4px)}
+.achievement-overlay.show{opacity:1;pointer-events:all}
+.achievement-panel{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 32px;max-width:520px;width:90%;max-height:80vh;overflow-y:auto}
+.achievement-panel h2{font-size:1.3rem;margin-bottom:16px;text-align:center;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.ach-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ach-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px;transition:all .2s}
+.ach-item.unlocked{border-color:var(--yellow);background:rgba(255,215,64,.05)}
+.ach-item.locked{opacity:.45}
+.ach-item .ach-icon{font-size:1.4rem}
+.ach-item .ach-name{font-size:.78rem;font-weight:700;color:var(--white)}
+.ach-item .ach-desc{font-size:.65rem;color:var(--dim);margin-top:1px}
+.ach-close{position:absolute;top:12px;right:16px;background:none;border:none;color:var(--dim);font-size:1.4rem;cursor:pointer}
+.achievement-panel{position:relative}
+
+.onboard-overlay{position:fixed;inset:0;background:rgba(10,10,18,.92);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .4s;backdrop-filter:blur(6px)}
+.onboard-overlay.show{opacity:1;pointer-events:all}
+.onboard-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px 44px;max-width:440px;width:90%;text-align:center;transform:scale(.9);transition:transform .4s cubic-bezier(.2,.9,.3,1)}
+.onboard-overlay.show .onboard-card{transform:scale(1)}
+.onboard-card h2{font-size:1.6rem;margin-bottom:20px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.onboard-steps{text-align:left;margin:0 auto 24px;max-width:320px}
+.onboard-step{display:flex;align-items:flex-start;gap:12px;margin:14px 0}
+.onboard-step .step-num{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:var(--grad);color:#000;font-size:.75rem;font-weight:800;display:flex;align-items:center;justify-content:center}
+.onboard-step .step-text{font-size:.88rem;color:var(--white);line-height:1.4;padding-top:3px}
+.onboard-card button{background:var(--grad);border:none;color:#000;font-weight:700;padding:12px 32px;border-radius:10px;font-size:1rem;cursor:pointer;transition:transform .15s;font-family:inherit}
+.onboard-card button:hover{transform:scale(1.05)}
+
+.mobile-banner{display:none;background:var(--surface);border:1px solid var(--yellow);border-radius:12px;padding:14px 18px;margin:10px 0;text-align:center;font-size:.82rem;color:var(--yellow)}
+
+.loading-state{text-align:center;padding:40px 20px;color:var(--dim);font-size:.9rem}
+.loading-state .spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite;margin-right:10px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:640px){
+  #text-display{font-size:1.3rem;line-height:2}
+  .typing-area{padding:20px 18px}
+  .key{width:28px;height:28px;font-size:.6rem}
+  .key.space{width:140px}
+  .stat{padding:8px 12px;min-width:75px}
+  .stat .value{font-size:1.15rem}
+  .dna-container{flex-direction:column}
+  .tabs{flex-wrap:wrap}
+  .ach-grid{grid-template-columns:1fr}
+  .overlay-card{padding:24px 20px}
+  .onboard-card{padding:28px 20px}
+}
+</style>
+</head>
+<body>
+<canvas id="particles"></canvas>
+<div id="app">
+  <div class="header">
+    <div class="header-left">
+      <h1>EchoType</h1>
+      <div class="tagline">Your mistakes become your challenges</div>
+    </div>
+    <button class="trophy-btn" id="trophy-btn" title="Achievements">&#127942;</button>
+  </div>
+
+  <div class="mobile-banner" id="mobile-banner">&#9000;&#65039; EchoType works best with a physical keyboard. Try on desktop for the full experience!</div>
+
+  <div class="stats-bar">
+    <div class="stat" style="min-width:120px"><div class="label">Flow Score</div><div class="value wpm" id="flow-val">0</div></div>
+    <div class="stat"><div class="label">WPM</div><div class="value" id="wpm-val" style="color:var(--dim);font-size:1.2rem">0</div></div>
+    <div class="stat"><div class="label">Accuracy</div><div class="value acc" id="acc-val">100%</div></div>
+    <div class="stat"><div class="label">Streak</div><div class="value streak" id="streak-val">0</div></div>
+    <div class="stat" id="combo-stat"><div class="label">Combo</div><div class="value combo" id="combo-val">x1</div></div>
+  </div>
+
+  <div class="controls">
+    <button class="sound-btn" id="sound-btn">Sound Off</button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-mode="adaptive">Adaptive</div>
+    <div class="tab" data-mode="echo">Targeted Drill<span class="mode-sublabel">Sentences loaded with your weakest patterns</span></div>
+    <div class="tab" data-mode="ghost">Ghost Race</div>
+    <div class="tab" data-mode="daily">Daily<span class="daily-dot" id="daily-dot"></span></div>
+    <div class="tab" data-mode="custom">Custom</div>
+  </div>
+
+  <div class="typing-area idle" id="typing-area">
+    <div class="streak-fire" id="streak-fire">&#128293;</div>
+    <div id="text-display"></div>
+    <div class="progress-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+    <div class="prompt" id="prompt-line">Press any key to start typing</div>
+  </div>
+
+  <div class="custom-input-area" id="custom-input-area">
+    <textarea id="custom-textarea" placeholder="Paste your text here (code, articles, emails...)"></textarea>
+    <button class="custom-start-btn" id="custom-start-btn" disabled>Start Typing</button>
+  </div>
+
+  <div class="keyboard-section">
+    <div class="section-title">Error Heatmap</div>
+    <div class="keyboard" id="keyboard"></div>
+  </div>
+
+  <div class="dna-section" id="dna-section">
+    <div class="section-title">Your Typing DNA</div>
+    <div class="dna-container">
+      <canvas id="dna-canvas" width="200" height="200"></canvas>
+      <div class="dna-info" id="dna-info"><div class="dna-detail">Complete a session to generate your typing fingerprint</div></div>
+    </div>
+  </div>
+
+  <div class="graph-section">
+    <div class="section-title">Improvement Over Time</div>
+    <div class="graph-container"><canvas id="graph"></canvas></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="overlay-card" id="overlay-card"></div>
+</div>
+
+<div class="achievement-overlay" id="ach-overlay">
+  <div class="achievement-panel" id="ach-panel"></div>
+</div>
+
+<div class="onboard-overlay" id="onboard-overlay">
+  <div class="onboard-card">
+    <h2>Welcome to EchoType</h2>
+    <div class="onboard-steps">
+      <div class="onboard-step"><div class="step-num">1</div><div class="step-text">Type the text as fast and accurately as you can</div></div>
+      <div class="onboard-step"><div class="step-num">2</div><div class="step-text">Your mistakes are tracked and used to generate harder challenges</div></div>
+      <div class="onboard-step"><div class="step-num">3</div><div class="step-text">Over time, the game learns YOUR unique weaknesses</div></div>
+    </div>
+    <button id="onboard-dismiss">Got it, let's type!</button>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+(function(){
+"use strict";
+
+var STORAGE_KEY = "echotype_v2";
+var CUSTOM_TEXT_KEY = "echotype_custom_text";
+
+var KB_ROWS = [
+  ["q","w","e","r","t","y","u","i","o","p"],
+  ["a","s","d","f","g","h","j","k","l"],
+  ["z","x","c","v","b","n","m"]
+];
+
+var FALLBACK_CORPUS = [
+  {t:"the quick brown fox jumps over the lazy dog",b:["th","qu","ck","br","ow","fo","ju","mp","ov","la","do"]},
+  {t:"pack my box with five dozen liquor jugs",b:["pa","ck","bo","wi","fi","ve","do","ze","li","qu","ju"]},
+  {t:"how vexingly quick daft zebras jump",b:["ho","ve","xi","ng","qu","ck","da","ft","ze","br","ju","mp"]},
+  {t:"the five boxing wizards jump quickly",b:["th","fi","ve","bo","xi","wi","za","ju","mp","qu","ck","ly"]},
+  {t:"sphinx of black quartz judge my vow",b:["sp","hi","nx","bl","ac","qu","ar","ju","dg","vo"]},
+  {t:"two driven jocks help fax my big quiz",b:["tw","dr","iv","jo","ck","he","lp","fa","bi","qu","iz"]},
+  {t:"a large fawn jumped quickly over white zinc boxes",b:["la","rg","fa","wn","ju","mp","qu","ck","ly","ov","wh","zi","nc","bo","xe"]},
+  {t:"crazy frederick bought many very exquisite opal jewels",b:["cr","az","fr","ed","er","bo","ug","ht","ma","ny","ve","ry","ex","qu","op","je","we"]},
+  {t:"we promptly judged antique ivory buckles for the next prize",b:["pr","om","pt","ly","ju","dg","an","ti","qu","iv","or","bu","ck","fo","th","ne","xt","pr","iz"]},
+  {t:"the job requires extra pluck and zeal from every young wage earner",b:["th","jo","re","qu","ir","ex","tr","pl","uc","ze","al","fr","om","ev","er","yo","un","wa","ea","rn"]},
+  {t:"grumpy wizards make toxic brew for the evil queen and jack",b:["gr","um","py","wi","za","ma","ke","to","xi","br","ew","fo","th","ev","il","qu","ee","ja","ck"]},
+  {t:"a quick movement of the enemy will jeopardize six gunboats",b:["qu","ck","mo","ve","me","nt","th","en","em","wi","ll","je","op","ar","di","ze","si","gu","nb","oa"]},
+  {t:"the rhythm of typing flows like water through your fingers",b:["th","rh","yt","hm","ty","pi","ng","fl","ow","li","ke","wa","te","ro","ug","yo","ur","fi","ng","er"]},
+  {t:"practice makes progress and every keystroke brings improvement",b:["pr","ac","ti","ce","ma","ke","pr","og","re","ev","er","ke","ys","tr","ok","br","in","im","pr","ov","me","nt"]},
+  {t:"focus on accuracy first then gradually increase your speed",b:["fo","cu","ac","cu","ra","cy","fi","rs","th","en","gr","ad","ua","ll","in","cr","ea","yo","ur","sp","ee"]},
+  {t:"muscle memory develops through consistent and deliberate practice",b:["mu","sc","le","me","mo","ry","de","ve","lo","ps","th","ro","ug","co","ns","is","te","nt","an","de","li","be","ra","pr","ac","ti","ce"]},
+  {t:"programming requires precise typing and attention to detail",b:["pr","og","ra","mm","in","re","qu","ir","pr","ec","is","ty","pi","ng","at","te","nt","io","de","ta","il"]},
+  {t:"keep your fingers on the home row for maximum efficiency",b:["ke","ep","yo","ur","fi","ng","er","on","th","ho","me","ro","fo","ma","xi","mu","ef","fi","ci","en","cy"]},
+  {t:"function returns an array of filtered objects from the database",b:["fu","nc","ti","on","re","tu","rn","ar","ra","of","fi","lt","er","ed","ob","je","ct","fr","om","th","da","ta","ba","se"]},
+  {t:"debug the recursive algorithm before deploying to production",b:["de","bu","th","re","cu","rs","iv","al","go","ri","th","be","fo","de","pl","oy","in","to","pr","od","uc","ti","on"]},
+  {t:"refactor this module to use dependency injection patterns",b:["re","fa","ct","or","th","is","mo","du","le","to","us","de","pe","nd","en","cy","in","je","ct","io","pa","tt","er","ns"]},
+  {t:"merge the feature branch after resolving all the conflicts",b:["me","rg","th","fe","at","ur","br","an","ch","af","te","re","so","lv","in","al","th","co","nf","li","ct"]},
+  {t:"parse the json response and validate against the schema",b:["pa","rs","th","js","on","re","sp","on","se","an","va","li","da","te","ag","ai","ns","th","sc","he","ma"]},
+  {t:"optimize the query by adding proper indexes to the table",b:["op","ti","mi","ze","th","qu","er","by","ad","di","ng","pr","op","er","in","de","xe","to","th","ta","bl"]},
+  {t:"handle exceptions gracefully with try catch finally blocks",b:["ha","nd","le","ex","ce","pt","io","ns","gr","ac","ef","ul","ly","wi","th","tr","ca","tc","fi","na","ll","bl","oc","ks"]},
+  {t:"deploy the containerized application to the kubernetes cluster",b:["de","pl","oy","th","co","nt","ai","ne","ri","ze","ap","pl","ic","at","io","to","th","ku","be","rn","et","cl","us","te"]},
+  {t:"cache the frequently accessed data to reduce server latency",b:["ca","ch","th","fr","eq","ue","nt","ly","ac","ce","ss","ed","da","ta","to","re","du","ce","se","rv","er","la","te","nc"]},
+  {t:"the weather forecast predicts rain throughout the afternoon",b:["th","we","at","he","fo","re","ca","st","pr","ed","ic","ts","ra","in","th","ro","ug","ho","ut","af","te","rn","oo"]},
+  {t:"she carefully arranged the flowers in a beautiful ceramic vase",b:["sh","ca","re","fu","ll","ar","ra","ng","ed","th","fl","ow","er","in","be","au","ti","fu","ce","ra","mi","va","se"]},
+  {t:"they decided to postpone the meeting until next wednesday",b:["th","ey","de","ci","de","to","po","st","po","ne","th","me","et","in","un","ti","ne","xt","we","dn","es","da"]},
+  {t:"a gentle breeze carried the scent of jasmine through the garden",b:["ge","nt","le","br","ee","ze","ca","rr","ie","th","sc","en","of","ja","sm","in","th","ro","ug","ga","rd","en"]},
+  {t:"we should consider alternative approaches before making a decision",b:["we","sh","ou","ld","co","ns","id","er","al","te","rn","at","iv","ap","pr","oa","ch","be","fo","ma","ki","ng","de","ci","si","on"]},
+  {t:"the train arrives at platform seven in approximately ten minutes",b:["th","tr","ai","ar","ri","ve","at","pl","at","fo","rm","se","ve","in","ap","pr","ox","im","at","el","te","mi","nu","te"]},
+  {t:"the professor explained the complex theory with simple examples",b:["th","pr","of","es","so","ex","pl","ai","ne","th","co","mp","le","th","eo","ry","wi","th","si","mp","le","ex","am","pl"]},
+  {t:"necessary accommodation occurred separately and independently",b:["ne","ce","ss","ar","ac","co","mm","od","at","io","oc","cu","rr","ed","se","pa","ra","te","ly","an","in","de","pe","nd","en","tl"]},
+  {t:"sophisticated algorithms determined the statistical significance",b:["so","ph","is","ti","ca","te","al","go","ri","th","ms","de","te","rm","in","ed","th","st","at","is","ti","ca","si","gn","if","ic","an","ce"]},
+  {t:"the archaeologist discovered an extraordinary collection underground",b:["th","ar","ch","ae","ol","og","is","di","sc","ov","er","ed","an","ex","tr","ao","rd","in","ar","co","ll","ec","ti","on","un","de","rg","ro","un"]},
+  {t:"unprecedented circumstances necessitated immediate intervention",b:["un","pr","ec","ed","en","te","ci","rc","um","st","an","ce","ne","ce","ss","it","at","ed","im","me","di","at","in","te","rv","en","ti","on"]},
+  {t:"the entrepreneur pursued pharmaceutical opportunities abroad",b:["th","en","tr","ep","re","ne","ur","pu","rs","ue","ph","ar","ma","ce","ut","ic","al","op","po","rt","un","it","ie","ab","ro","ad"]},
+  {t:"every experienced developer appreciates clean and readable code",b:["ev","er","ex","pe","ri","en","ce","de","ve","lo","pe","ap","pr","ec","ia","te","cl","ea","an","re","ad","ab","le","co","de"]},
+  {t:"typing accuracy matters much more than raw speed at first",b:["ty","pi","ng","ac","cu","ra","cy","ma","tt","er","mu","ch","mo","re","th","an","ra","sp","ee","at","fi","rs"]},
+  {t:"persistent effort combined with patience yields remarkable results",b:["pe","rs","is","te","nt","ef","fo","rt","co","mb","in","ed","wi","th","pa","ti","en","ce","yi","el","ds","re","ma","rk","ab","le","re","su","lt"]},
+  {t:"collaborative teamwork often produces better outcomes than solo work",b:["co","ll","ab","or","at","iv","te","am","wo","rk","of","te","pr","od","uc","es","be","tt","er","ou","tc","om","th","an","so","lo","wo","rk"]},
+  {t:"the sunset painted the sky in shades of orange and purple",b:["th","su","ns","et","pa","in","te","th","sk","in","sh","ad","es","of","or","an","ge","an","pu","rp","le"]},
+  {t:"she wrote a lengthy email explaining her perspective on the matter",b:["sh","wr","ot","le","ng","th","em","ai","ex","pl","ai","ni","ng","he","pe","rs","pe","ct","iv","on","th","ma","tt","er"]},
+  {t:"the library contains thousands of books from different centuries",b:["th","li","br","ar","co","nt","ai","ns","th","ou","sa","nd","of","bo","ok","fr","om","di","ff","er","en","ce","nt","ur","ie"]},
+  {t:"understanding complex systems requires patience and careful analysis",b:["un","de","rs","ta","nd","in","co","mp","le","sy","st","em","re","qu","ir","es","pa","ti","en","ce","an","ca","re","fu","an","al","ys","is"]},
+  {t:"the restaurant serves authentic cuisine from multiple regions",b:["th","re","st","au","ra","nt","se","rv","es","au","th","en","ti","cu","is","in","fr","om","mu","lt","ip","le","re","gi","on"]},
+  {t:"developers should write tests before implementing new features",b:["de","ve","lo","pe","rs","sh","ou","ld","wr","it","te","st","be","fo","re","im","pl","em","en","ti","ng","ne","fe","at","ur","es"]},
+  {t:"the mountain trail winds through forests and across rocky streams",b:["th","mo","un","ta","in","tr","ai","wi","nd","th","ro","ug","fo","re","st","an","ac","ro","ss","ro","ck","st","re","am"]}
+];
+
+var COMMON_WORDS = "the be to of and a in that have i it for not on with he as you do at this but his by from they we say her she or an will my one all would there their what so up out if about who get which go me when make can like time no just him know take people into year your good some could them see other than then now look only come its over think also back after use two how our work first well way even new want because any these give day most us".split(" ");
+var TRANSITIONS = ["and","the","with","for","but","or","in","to","from","by","that","this","each","every","some","more","when","after","before","while","then","also","just"];
+
+var ACHIEVEMENTS = [
+  {id:"first_steps",name:"First Steps",desc:"Complete your first round",icon:"\ud83d\udc63",check:function(m){return m.sessions.length>=1}},
+  {id:"speed_demon",name:"Speed Demon",desc:"Reach 80 WPM",icon:"\u26a1",check:function(m){return m.bestWPM>=80}},
+  {id:"perfectionist",name:"Perfectionist",desc:"Complete a round with 100% accuracy",icon:"\ud83c\udfaf",check:function(m,s){return s&&s.acc===100}},
+  {id:"echo_master",name:"Drill Master",desc:"Complete a Targeted Drill above 60 WPM",icon:"\ud83d\udd01",check:function(m,s){return s&&s.mode==="echo"&&s.wpm>60}},
+  {id:"ghost_buster",name:"Ghost Buster",desc:"Beat your ghost by 10+ WPM",icon:"\ud83d\udc7b",check:function(m,s){return s&&s.mode==="ghost"&&s.ghostMargin>=10}},
+  {id:"marathon",name:"Marathon",desc:"Complete 10 rounds in one session",icon:"\ud83c\udfc3",check:function(m){return sessionRoundsCount>=10}},
+  {id:"improvement",name:"Improvement",desc:"Improve WPM by 20 from your first session",icon:"\ud83d\udcc8",check:function(m){return m.sessions.length>=2&&m.bestWPM-(m.sessions[0].wpm)>=20}},
+  {id:"dna_evolved",name:"DNA Evolved",desc:"Have 50+ total key errors tracked",icon:"\ud83e\uddec",check:function(m){var t=0;for(var k in m.keyErrors)t+=m.keyErrors[k];return t>=50}},
+  {id:"daily_warrior",name:"Daily Warrior",desc:"Complete a daily challenge",icon:"\ud83d\udcc5",check:function(m,s){return s&&s.mode==="daily"}},
+  {id:"centurion",name:"Centurion",desc:"Reach 100 WPM",icon:"\ud83d\ude80",check:function(m){return m.bestWPM>=100}}
+];
+
+var sessionRoundsCount = 0;
+
+/* ── Corpus ── */
+var corpus = [];
+var corpusLoaded = false;
+var usedSentenceIndices = new Set();
+
+function loadCorpus() {
+  var textDisplay = document.getElementById("text-display");
+  textDisplay.innerHTML = '<div class="loading-state"><span class="spinner"></span>Loading corpus&hellip;</div>';
+
+  fetch("corpus.json")
+    .then(function(res) {
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    })
+    .then(function(data) {
+      if (Array.isArray(data) && data.length > 0) {
+        corpus = data;
+      } else {
+        corpus = FALLBACK_CORPUS;
+      }
+      corpusLoaded = true;
+      startRound();
+    })
+    .catch(function() {
+      corpus = FALLBACK_CORPUS;
+      corpusLoaded = true;
+      startRound();
+    });
+}
+
+/* ── State ── */
+var model = loadModel();
+var currentText = "";
+var charStates = [];
+var cursorPos = 0;
+var startTime = 0;
+var started = false;
+var finished = false;
+var streak = 0;
+var maxStreak = 0;
+var combo = 1;
+var totalCorrect = 0;
+var totalTyped = 0;
+var currentMode = "adaptive";
+var charTimestamps = [];
+var lastKeyTime = 0;
+var ghostPos = 0;
+var ghostWPM = 0;
+var ghostFinished = false;
+var idleTimeout = null;
+var customChunks = [];
+var customChunkIndex = 0;
+
+/* ── Audio ── */
+var audioCtx = null;
+var soundEnabled = false;
+
+function playClick(correct) {
+  if (!soundEnabled) return;
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { return; }
+  }
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.connect(g); g.connect(audioCtx.destination);
+  o.frequency.value = correct ? 880 : 220;
+  o.type = correct ? "sine" : "triangle";
+  var t = audioCtx.currentTime;
+  g.gain.setValueAtTime(0.025, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+  o.start(t); o.stop(t + 0.06);
+}
+
+/* ── Persistence ── */
+function loadModel() {
+  try {
+    var d = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (d && d.version === 2) {
+      if (!d.slowTrigrams) d.slowTrigrams = {};
+      if (d.lastSessionWPM == null) d.lastSessionWPM = 0;
+      if (d.bestWPM == null) d.bestWPM = 0;
+      if (!d.achievements) d.achievements = {};
+      if (!d.dailyBest) d.dailyBest = {};
+      if (!d.onboarded) d.onboarded = false;
+      return d;
+    }
+    var legacy = JSON.parse(localStorage.getItem("echotype_v1"));
+    if (legacy && legacy.version === 1) {
+      legacy.version = 2;
+      if (!legacy.slowTrigrams) legacy.slowTrigrams = {};
+      if (!legacy.achievements) legacy.achievements = {};
+      if (!legacy.dailyBest) legacy.dailyBest = {};
+      return legacy;
+    }
+  } catch(e) {}
+  return freshModel();
+}
+function freshModel() {
+  return {
+    version: 2,
+    substitutions: {},
+    slowBigrams: {},
+    slowTrigrams: {},
+    wordErrors: {},
+    positionalErrors: { start: 0, middle: 0, end: 0 },
+    keyErrors: {},
+    sessions: [],
+    totalCharsTyped: 0,
+    lastSessionWPM: 0,
+    bestWPM: 0,
+    achievements: {},
+    dailyBest: {},
+    onboarded: false
+  };
+}
+function saveModel() { localStorage.setItem(STORAGE_KEY, JSON.stringify(model)); }
+
+/* ── Mobile detection ── */
+function isMobile() {
+  return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent) || (window.innerWidth < 768 && 'ontouchstart' in window);
+}
+
+/* ── Onboarding ── */
+function showOnboarding() {
+  if (model.onboarded) return;
+  var el = document.getElementById("onboard-overlay");
+  el.classList.add("show");
+  document.getElementById("onboard-dismiss").onclick = function() {
+    el.classList.remove("show");
+    model.onboarded = true;
+    saveModel();
+  };
+}
+
+/* ── Daily Challenge ── */
+function seededRandom(seed) {
+  var s = seed;
+  return function() {
+    s = (s * 1664525 + 1013904223) & 0xFFFFFFFF;
+    return (s >>> 0) / 4294967296;
+  };
+}
+
+function getDailySeed() {
+  var d = new Date();
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+}
+
+function getTodayKey() {
+  var d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+
+function generateDailyText() {
+  var seed = getDailySeed();
+  var rng = seededRandom(seed);
+  var n = corpus.length;
+  if (n === 0) return "the quick brown fox jumps over the lazy dog";
+  var idx1 = Math.floor(rng() * n);
+  var idx2 = Math.floor(rng() * n);
+  var idx3 = Math.floor(rng() * n);
+  var sentences = [corpus[idx1].t, corpus[idx2].t, corpus[idx3].t];
+  return sentences.join(" ");
+}
+
+function isDailyCompleted() {
+  return !!model.dailyBest[getTodayKey()];
+}
+
+function updateDailyDot() {
+  var dot = document.getElementById("daily-dot");
+  if (dot) dot.style.background = isDailyCompleted() ? "var(--dim)" : "var(--green)";
+}
+
+/* ── Achievements ── */
+function checkAchievements(sessionData) {
+  var newlyUnlocked = [];
+  for (var i = 0; i < ACHIEVEMENTS.length; i++) {
+    var ach = ACHIEVEMENTS[i];
+    if (model.achievements[ach.id]) continue;
+    if (ach.check(model, sessionData)) {
+      model.achievements[ach.id] = Date.now();
+      newlyUnlocked.push(ach);
+    }
+  }
+  if (newlyUnlocked.length > 0) {
+    saveModel();
+    newlyUnlocked.forEach(function(a, i) { setTimeout(function() { showToast(a); }, i * 800); });
+    updateTrophyBadge();
+  }
+}
+
+function showToast(ach) {
+  var container = document.getElementById("toast-container");
+  var toast = document.createElement("div");
+  toast.className = "toast";
+  toast.innerHTML = '<div class="toast-icon">' + ach.icon + '</div><div class="toast-text"><div class="toast-title">' + ach.name + '</div><div class="toast-desc">' + ach.desc + '</div></div>';
+  container.appendChild(toast);
+  requestAnimationFrame(function() { requestAnimationFrame(function() { toast.classList.add("show"); }); });
+  setTimeout(function() { toast.classList.remove("show"); setTimeout(function() { toast.remove(); }, 400); }, 3500);
+}
+
+function updateTrophyBadge() {
+  var btn = document.getElementById("trophy-btn");
+  var count = Object.keys(model.achievements).length;
+  var existing = btn.querySelector(".badge");
+  if (existing) existing.remove();
+  if (count > 0) {
+    var b = document.createElement("span");
+    b.className = "badge";
+    b.textContent = count;
+    btn.appendChild(b);
+  }
+}
+
+function showAchievementGallery() {
+  var overlay = document.getElementById("ach-overlay");
+  var panel = document.getElementById("ach-panel");
+  var html = '<button class="ach-close" id="ach-close">&times;</button><h2>Achievements</h2><div class="ach-grid">';
+  for (var i = 0; i < ACHIEVEMENTS.length; i++) {
+    var ach = ACHIEVEMENTS[i];
+    var unlocked = !!model.achievements[ach.id];
+    html += '<div class="ach-item ' + (unlocked ? "unlocked" : "locked") + '"><div class="ach-icon">' + ach.icon + '</div><div><div class="ach-name">' + ach.name + '</div><div class="ach-desc">' + ach.desc + '</div></div></div>';
+  }
+  html += '</div>';
+  panel.innerHTML = html;
+  overlay.classList.add("show");
+  document.getElementById("ach-close").onclick = function() { overlay.classList.remove("show"); };
+  overlay.addEventListener("click", function(e) { if (e.target === overlay) overlay.classList.remove("show"); });
+}
+
+/* ── Particle system ── */
+var pCanvas = document.getElementById("particles");
+var pCtx = pCanvas.getContext("2d");
+var particles = [];
+function resizeParticles() { pCanvas.width = window.innerWidth; pCanvas.height = window.innerHeight; }
+window.addEventListener("resize", resizeParticles);
+resizeParticles();
+
+function spawnParticle(x, y) {
+  var hue = 170 + Math.random() * 100;
+  for (var i = 0; i < 3; i++) {
+    particles.push({ x: x, y: y, vx: (Math.random() - 0.5) * 3, vy: -1.5 - Math.random() * 2, life: 1, decay: 0.015 + Math.random() * 0.01, size: 2 + Math.random() * 3, hue: hue });
+  }
+}
+function updateParticles() {
+  pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+  for (var i = particles.length - 1; i >= 0; i--) {
+    var p = particles[i];
+    p.x += p.vx; p.y += p.vy; p.vy += 0.03; p.life -= p.decay;
+    if (p.life <= 0) { particles.splice(i, 1); continue; }
+    pCtx.globalAlpha = p.life * 0.7;
+    pCtx.fillStyle = "hsl(" + p.hue + ",90%,70%)";
+    pCtx.beginPath();
+    pCtx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+    pCtx.fill();
+  }
+  pCtx.globalAlpha = 1;
+}
+
+/* ── Keyboard rendering ── */
+var kbEl = document.getElementById("keyboard");
+var keyEls = {};
+function buildKeyboard() {
+  kbEl.innerHTML = "";
+  KB_ROWS.forEach(function(row, ri) {
+    var rowEl = document.createElement("div");
+    rowEl.className = "kb-row";
+    if (ri === 1) rowEl.style.paddingLeft = "18px";
+    if (ri === 2) rowEl.style.paddingLeft = "36px";
+    row.forEach(function(k) {
+      var el = document.createElement("div");
+      el.className = "key";
+      el.textContent = k;
+      el.dataset.key = k;
+      var badge = document.createElement("div");
+      badge.className = "error-count";
+      el.appendChild(badge);
+      keyEls[k] = el;
+      rowEl.appendChild(el);
+    });
+    kbEl.appendChild(rowEl);
+  });
+  var spaceRow = document.createElement("div");
+  spaceRow.className = "kb-row";
+  var spaceEl = document.createElement("div");
+  spaceEl.className = "key space";
+  spaceEl.textContent = "space";
+  spaceEl.dataset.key = " ";
+  var badge = document.createElement("div");
+  badge.className = "error-count";
+  spaceEl.appendChild(badge);
+  keyEls[" "] = spaceEl;
+  spaceRow.appendChild(spaceEl);
+  kbEl.appendChild(spaceRow);
+}
+buildKeyboard();
+
+function updateKeyboardHeatmap() {
+  var errs = model.keyErrors;
+  var maxErr = 0;
+  for (var k in errs) if (errs[k] > maxErr) maxErr = errs[k];
+  if (!maxErr) maxErr = 1;
+  for (var key in keyEls) {
+    var el = keyEls[key];
+    var count = errs[key] || 0;
+    var intensity = count / maxErr;
+    var badge = el.querySelector(".error-count");
+    if (count > 0) {
+      var r = Math.round(255 * intensity);
+      var g = Math.round(80 * (1 - intensity));
+      var b = Math.round(60 * (1 - intensity));
+      el.style.background = "rgba(" + r + "," + g + "," + b + "," + (0.15 + intensity * 0.5) + ")";
+      el.style.borderColor = "rgba(" + r + "," + g + "," + b + "," + (0.4 + intensity * 0.4) + ")";
+      el.style.color = "rgb(" + Math.min(255, 180 + r) + "," + Math.min(255, 180 + g) + "," + Math.min(255, 180 + b) + ")";
+      badge.textContent = count;
+      badge.classList.add("visible");
+    } else {
+      el.style.background = "";
+      el.style.borderColor = "";
+      el.style.color = "";
+      badge.classList.remove("visible");
+    }
+  }
+}
+updateKeyboardHeatmap();
+
+/* ── Graph ── */
+var graphCanvas = document.getElementById("graph");
+var gCtx = graphCanvas.getContext("2d");
+function drawGraph() {
+  var rect = graphCanvas.parentElement.getBoundingClientRect();
+  graphCanvas.width = rect.width - 32;
+  graphCanvas.height = rect.height - 32;
+  var w = graphCanvas.width, h = graphCanvas.height;
+  gCtx.clearRect(0, 0, w, h);
+  if (w <= 0 || h <= 0) return;
+
+  var sessions = model.sessions;
+  if (sessions.length < 2) {
+    gCtx.fillStyle = "#555578";
+    gCtx.font = "13px system-ui";
+    gCtx.textAlign = "center";
+    gCtx.fillText("Complete more sessions to see your progress", w / 2, h / 2);
+    return;
+  }
+
+  var wpms = sessions.map(function(s) { return s.wpm; });
+  var accs = sessions.map(function(s) { return s.acc; });
+  var maxW = Math.max.apply(null, wpms.concat([30]));
+  var n = sessions.length;
+
+  gCtx.strokeStyle = "#00e5ff";
+  gCtx.lineWidth = 2;
+  gCtx.beginPath();
+  for (var i = 0; i < n; i++) {
+    var x = (i / (n - 1)) * (w - 20) + 10;
+    var y = h - 10 - (wpms[i] / maxW) * (h - 24);
+    i === 0 ? gCtx.moveTo(x, y) : gCtx.lineTo(x, y);
+  }
+  gCtx.stroke();
+
+  gCtx.strokeStyle = "#69f0ae";
+  gCtx.lineWidth = 2;
+  gCtx.beginPath();
+  for (var i = 0; i < n; i++) {
+    var x = (i / (n - 1)) * (w - 20) + 10;
+    var y = h - 10 - (accs[i] / 100) * (h - 24);
+    i === 0 ? gCtx.moveTo(x, y) : gCtx.lineTo(x, y);
+  }
+  gCtx.stroke();
+
+  gCtx.font = "11px system-ui";
+  gCtx.fillStyle = "#00e5ff"; gCtx.textAlign = "left";
+  gCtx.fillText("WPM", 10, 14);
+  gCtx.fillStyle = "#69f0ae";
+  gCtx.fillText("Accuracy", 50, 14);
+  gCtx.textAlign = "right";
+  gCtx.fillStyle = "#00e5ff";
+  gCtx.fillText(wpms[n-1] + " WPM", w - 10, 14);
+  gCtx.fillStyle = "#69f0ae";
+  gCtx.fillText(accs[n-1] + "%", w - 10, 28);
+}
+drawGraph();
+window.addEventListener("resize", drawGraph);
+
+/* ── Weakness DNA visualization ── */
+function drawDNA(canvasId, size) {
+  var c = document.getElementById(canvasId);
+  if (!c) return;
+  var sz = size || 200;
+  c.width = sz; c.height = sz;
+  var ctx = c.getContext("2d");
+  var cx = sz / 2, cy = sz / 2, R = sz * 0.375;
+  ctx.clearRect(0, 0, sz, sz);
+
+  var letters = "abcdefghijklmnopqrstuvwxyz";
+  var errs = model.keyErrors;
+  var mx = 1;
+  for (var k in errs) if (errs[k] > mx) mx = errs[k];
+
+  var hasData = Object.keys(errs).length > 0;
+  if (!hasData) {
+    ctx.fillStyle = "#555578";
+    ctx.font = (sz * 0.06) + "px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText("No data yet", cx, cy);
+    return;
+  }
+
+  for (var r = 0.33; r <= 1; r += 0.33) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, R * r, 0, Math.PI * 2);
+    ctx.strokeStyle = "rgba(85,85,120,.15)";
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+  }
+
+  ctx.beginPath();
+  for (var i = 0; i < 26; i++) {
+    var a = (i / 26) * Math.PI * 2 - Math.PI / 2;
+    var t = (errs[letters[i]] || 0) / mx;
+    var r2 = sz * 0.08 + t * (R - sz * 0.08);
+    var x = cx + Math.cos(a) * r2, y = cy + Math.sin(a) * r2;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.fillStyle = "rgba(0,229,255,.07)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(0,229,255,.35)";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  for (var i = 0; i < 26; i++) {
+    var a = (i / 26) * Math.PI * 2 - Math.PI / 2;
+    var t = (errs[letters[i]] || 0) / mx;
+    var r2 = sz * 0.08 + t * (R - sz * 0.08);
+    var x = cx + Math.cos(a) * r2, y = cy + Math.sin(a) * r2;
+    var lx = cx + Math.cos(a) * (R + sz * 0.06);
+    var ly = cy + Math.sin(a) * (R + sz * 0.06);
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = "hsla(" + (180 + t * 100) + ",70%,55%," + (0.12 + t * 0.45) + ")";
+    ctx.lineWidth = 0.5 + t * 2.5;
+    ctx.stroke();
+
+    if ((errs[letters[i]] || 0) > 0) {
+      ctx.beginPath();
+      ctx.arc(x, y, 1.5 + t * 4, 0, Math.PI * 2);
+      ctx.fillStyle = "hsla(" + (180 + t * 100) + ",70%,55%,.8)";
+      ctx.fill();
+    }
+
+    if (sz >= 180) {
+      ctx.fillStyle = (errs[letters[i]] || 0) > 0 ? "hsla(" + (180 + t * 100) + ",70%,55%,.7)" : "rgba(85,85,120,.3)";
+      ctx.font = (sz * 0.045) + "px system-ui";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(letters[i], lx, ly);
+    }
+  }
+
+  var p = model.positionalErrors;
+  var tot = p.start + p.middle + p.end || 1;
+  var arcs = [[p.start / tot, "#00e5ff"], [p.middle / tot, "#b388ff"], [p.end / tot, "#ff5252"]];
+  var sa = -Math.PI / 2;
+  for (var ai = 0; ai < arcs.length; ai++) {
+    var frac = arcs[ai][0], col = arcs[ai][1];
+    if (frac <= 0) continue;
+    var sw = frac * Math.PI * 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, sz * 0.055, sa, sa + sw);
+    ctx.strokeStyle = col;
+    ctx.lineWidth = sz * 0.015;
+    ctx.stroke();
+    sa += sw;
+  }
+
+  var subs = model.substitutions;
+  var topSubs = Object.entries(subs).sort(function(a, b) { return b[1] - a[1]; }).slice(0, 5);
+  for (var si = 0; si < topSubs.length; si++) {
+    var key = topSubs[si][0], count = topSubs[si][1];
+    var parts = key.split(">");
+    if (parts.length !== 2 || parts[0].length !== 1 || parts[1].length !== 1) continue;
+    var i1 = letters.indexOf(parts[0]), i2 = letters.indexOf(parts[1]);
+    if (i1 < 0 || i2 < 0) continue;
+    var a1 = (i1 / 26) * Math.PI * 2 - Math.PI / 2;
+    var a2 = (i2 / 26) * Math.PI * 2 - Math.PI / 2;
+    var t1 = (errs[parts[0]] || 0) / mx;
+    var t2 = (errs[parts[1]] || 0) / mx;
+    var r1 = sz * 0.08 + t1 * (R - sz * 0.08);
+    var r22 = sz * 0.08 + t2 * (R - sz * 0.08);
+    var x1 = cx + Math.cos(a1) * r1, y1 = cy + Math.sin(a1) * r1;
+    var x2 = cx + Math.cos(a2) * r22, y2 = cy + Math.sin(a2) * r22;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.quadraticCurveTo(cx, cy, x2, y2);
+    ctx.strokeStyle = "rgba(255,82,82," + (0.08 + (count / (topSubs[0][1] || 1)) * 0.2) + ")";
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+  }
+}
+
+function updateDNAInfo() {
+  var info = document.getElementById("dna-info");
+  if (!info) return;
+  var errs = model.keyErrors;
+  var topErrors = Object.entries(errs).sort(function(a, b) { return b[1] - a[1]; }).slice(0, 5);
+  if (topErrors.length === 0) {
+    info.innerHTML = '<div class="dna-detail">Complete a session to generate your typing fingerprint</div>';
+    return;
+  }
+  var p = model.positionalErrors;
+  var posLabel = p.start >= p.middle && p.start >= p.end ? "word starts" : p.end >= p.middle ? "word endings" : "word middles";
+  var topSubs = Object.entries(model.substitutions).sort(function(a, b) { return b[1] - a[1]; }).slice(0, 3);
+  var html = '<div class="dna-label">Your Weakness Fingerprint</div>';
+  html += '<div class="dna-detail">Weakest keys: ' + topErrors.map(function(e) { return '<strong style="color:var(--red)">' + e[0] + '</strong>(' + e[1] + ')'; }).join(" ") + '</div>';
+  html += '<div class="dna-detail">Most errors in: <strong style="color:var(--purple)">' + posLabel + '</strong></div>';
+  if (topSubs.length > 0) {
+    html += '<div class="dna-detail">Common swaps: ' + topSubs.map(function(e) { return '<strong style="color:var(--yellow)">' + e[0].replace(">", " \u2192 ") + '</strong>'; }).join(", ") + '</div>';
+  }
+  info.innerHTML = html;
+}
+
+drawDNA("dna-canvas", 200);
+updateDNAInfo();
+
+/* ── Text generation ── */
+function getWeakBigrams(count) {
+  var subs = model.substitutions;
+  var slow = model.slowBigrams;
+  var scored = {};
+  for (var key in subs) {
+    var parts = key.split(">");
+    if (parts.length === 2 && parts[0].length === 1) {
+      scored[parts[0]] = (scored[parts[0]] || 0) + subs[key] * 3;
+    }
+  }
+  for (var bg in slow) {
+    var d = slow[bg];
+    if (d.count > 0) {
+      scored[bg] = (scored[bg] || 0) + Math.max(0, (d.totalMs / d.count) - 150) / 50;
+    }
+  }
+  return Object.entries(scored).sort(function(a, b) { return b[1] - a[1]; }).slice(0, count).map(function(e) { return e[0]; });
+}
+
+function getWeakBigramsList(count) {
+  var slow = model.slowBigrams;
+  var scored = {};
+  for (var bg in slow) {
+    var d = slow[bg];
+    if (d.count > 0) {
+      scored[bg] = Math.max(0, (d.totalMs / d.count) - 150) / 50 + d.count * 0.1;
+    }
+  }
+  for (var key in model.substitutions) {
+    var parts = key.split(">");
+    if (parts.length === 2 && parts[0].length === 1 && parts[1].length === 1) {
+      var bg2 = parts[0] + parts[1];
+      scored[bg2] = (scored[bg2] || 0) + model.substitutions[key] * 2;
+    }
+  }
+  return Object.entries(scored).sort(function(a, b) { return b[1] - a[1]; }).slice(0, count).map(function(e) { return e[0]; });
+}
+
+function scoreSentenceByWeakBigrams(sentence, weakBigrams) {
+  var score = 0;
+  var text = sentence.t.toLowerCase();
+  var bigramsInSentence = sentence.b || [];
+  for (var i = 0; i < weakBigrams.length; i++) {
+    var bg = weakBigrams[i];
+    if (bigramsInSentence.indexOf(bg) >= 0) {
+      score += 3;
+    } else if (text.indexOf(bg) >= 0) {
+      score += 1;
+    }
+  }
+  return score;
+}
+
+function generateAdaptiveText() {
+  if (corpus.length === 0) return "the quick brown fox jumps over the lazy dog";
+
+  var weakBigrams = getWeakBigramsList(20);
+  var scored = [];
+  for (var i = 0; i < corpus.length; i++) {
+    if (usedSentenceIndices.has(i)) continue;
+    var s = scoreSentenceByWeakBigrams(corpus[i], weakBigrams);
+    scored.push({ idx: i, score: s });
+  }
+
+  if (scored.length < 3) {
+    usedSentenceIndices.clear();
+    for (var i = 0; i < corpus.length; i++) {
+      scored.push({ idx: i, score: scoreSentenceByWeakBigrams(corpus[i], weakBigrams) });
+    }
+  }
+
+  scored.sort(function(a, b) { return b.score - a.score; });
+
+  var selected = [];
+  var wordCount = 0;
+  var targetWords = 60 + Math.floor(Math.random() * 20);
+  for (var i = 0; i < scored.length && wordCount < targetWords; i++) {
+    var entry = corpus[scored[i].idx];
+    var words = entry.t.split(/\s+/).length;
+    selected.push(entry.t);
+    usedSentenceIndices.add(scored[i].idx);
+    wordCount += words;
+    if (selected.length >= 3) break;
+  }
+
+  if (selected.length === 0) {
+    var fallbackIdx = Math.floor(Math.random() * corpus.length);
+    selected.push(corpus[fallbackIdx].t);
+  }
+
+  return selected.join(" ");
+}
+
+function generateEchoChamberText() {
+  if (corpus.length === 0) return "you have no recorded errors yet keep typing to build your error profile then come back for a real challenge";
+
+  var weakBigrams = getWeakBigramsList(30);
+  if (weakBigrams.length === 0) {
+    return "you have no recorded errors yet keep typing to build your error profile then come back for a real challenge";
+  }
+
+  var scored = [];
+  for (var i = 0; i < corpus.length; i++) {
+    var s = scoreSentenceByWeakBigrams(corpus[i], weakBigrams);
+    scored.push({ idx: i, score: s });
+  }
+  scored.sort(function(a, b) { return b.score - a.score; });
+
+  var selected = [];
+  var wordCount = 0;
+  var limit = Math.min(10, scored.length);
+  for (var i = 0; i < limit && wordCount < 80; i++) {
+    var entry = corpus[scored[i].idx];
+    selected.push(entry.t);
+    wordCount += entry.t.split(/\s+/).length;
+    if (selected.length >= 3) break;
+  }
+
+  return selected.join(" ");
+}
+
+function generateGhostText() {
+  return generateAdaptiveText();
+}
+
+function generateCustomText() {
+  if (customChunks.length === 0) return "";
+  if (customChunkIndex >= customChunks.length) customChunkIndex = 0;
+  var text = customChunks[customChunkIndex];
+  customChunkIndex++;
+  return text;
+}
+
+function splitCustomText(raw) {
+  var cleaned = raw.replace(/\r\n/g, " ").replace(/\r/g, " ").replace(/\n/g, " ").replace(/\t/g, " ").replace(/ {2,}/g, " ").trim();
+  if (!cleaned) return [];
+
+  var words = cleaned.split(" ");
+  var chunks = [];
+  var current = [];
+  var wc = 0;
+  for (var i = 0; i < words.length; i++) {
+    current.push(words[i]);
+    wc++;
+    if (wc >= 60) {
+      chunks.push(current.join(" "));
+      current = [];
+      wc = 0;
+    }
+  }
+  if (current.length > 0) {
+    chunks.push(current.join(" "));
+  }
+  return chunks;
+}
+
+/* ── Game logic ── */
+var textDisplay = document.getElementById("text-display");
+var progressBar = document.getElementById("progress-bar");
+var promptLine = document.getElementById("prompt-line");
+var wpmEl = document.getElementById("wpm-val");
+var accEl = document.getElementById("acc-val");
+var streakEl = document.getElementById("streak-val");
+var comboEl = document.getElementById("combo-val");
+var comboStat = document.getElementById("combo-stat");
+var typingArea = document.getElementById("typing-area");
+var streakFire = document.getElementById("streak-fire");
+var customInputArea = document.getElementById("custom-input-area");
+var customTextarea = document.getElementById("custom-textarea");
+var customStartBtn = document.getElementById("custom-start-btn");
+
+function setIdleState(idle) {
+  if (idle) {
+    typingArea.classList.add("idle");
+    typingArea.classList.remove("focused");
+  } else {
+    typingArea.classList.remove("idle");
+    typingArea.classList.add("focused");
+  }
+}
+
+function resetIdleTimer() {
+  clearTimeout(idleTimeout);
+  setIdleState(false);
+  idleTimeout = setTimeout(function() { if (!started || finished) setIdleState(true); }, 5000);
+}
+
+function showCustomUI() {
+  customInputArea.classList.add("visible");
+  typingArea.style.display = "none";
+  var saved = localStorage.getItem(CUSTOM_TEXT_KEY);
+  if (saved && !customTextarea.value) {
+    customTextarea.value = saved;
+    customStartBtn.disabled = false;
+  }
+}
+
+function hideCustomUI() {
+  customInputArea.classList.remove("visible");
+  typingArea.style.display = "";
+}
+
+customTextarea.addEventListener("input", function() {
+  var val = customTextarea.value.trim();
+  customStartBtn.disabled = val.length === 0;
+});
+
+customStartBtn.addEventListener("click", function() {
+  var raw = customTextarea.value.trim();
+  if (!raw) return;
+  localStorage.setItem(CUSTOM_TEXT_KEY, raw);
+  customChunks = splitCustomText(raw);
+  customChunkIndex = 0;
+  if (customChunks.length === 0) return;
+  hideCustomUI();
+  startRound();
+});
+
+function calcFlowScore(wpm, acc, currentStreak) {
+  var speedScore = Math.min(wpm / 150, 1) * 40;
+  var accScore = Math.pow(acc / 100, 2) * 40;
+  var streakBonus = Math.min(currentStreak / 30, 1) * 20;
+  return Math.round(speedScore + accScore + streakBonus);
+}
+
+function startRound() {
+  if (!corpusLoaded) return;
+
+  if (currentMode === "custom") {
+    if (customChunks.length === 0) {
+      showCustomUI();
+      return;
+    }
+    hideCustomUI();
+  }
+
+  if (currentMode === "ghost") {
+    ghostWPM = model.lastSessionWPM || model.bestWPM || 30;
+    ghostPos = 0;
+    ghostFinished = false;
+  }
+
+  if (currentMode === "daily") {
+    currentText = generateDailyText();
+  } else if (currentMode === "echo") {
+    currentText = generateEchoChamberText();
+  } else if (currentMode === "ghost") {
+    currentText = generateGhostText();
+  } else if (currentMode === "custom") {
+    currentText = generateCustomText();
+  } else {
+    currentText = generateAdaptiveText();
+  }
+
+  if (!currentText || currentText.length === 0) {
+    currentText = "the quick brown fox jumps over the lazy dog";
+  }
+
+  charStates = new Array(currentText.length).fill("pending");
+  charTimestamps = new Array(currentText.length).fill(0);
+  cursorPos = 0;
+  startTime = 0;
+  started = false;
+  finished = false;
+  streak = 0;
+  maxStreak = 0;
+  combo = 1;
+  totalCorrect = 0;
+  totalTyped = 0;
+  lastKeyTime = 0;
+  renderText();
+  progressBar.style.width = "0%";
+  streakFire.classList.remove("visible");
+
+  if (currentMode === "ghost") {
+    promptLine.innerHTML = 'Race against your ghost (<strong>' + ghostWPM + ' WPM</strong>). Press any key to start.';
+  } else if (currentMode === "daily") {
+    var best = model.dailyBest[getTodayKey()];
+    promptLine.innerHTML = best ? 'Today\'s best: <strong>' + best.wpm + ' WPM</strong> / ' + best.acc + '% — Try again or come back tomorrow!' : 'Daily Challenge \u2014 Same text for everyone today. Press any key to start.';
+  } else if (currentMode === "echo") {
+    promptLine.textContent = "Targeted Drill \u2014 intentionally challenging. Press any key to start.";
+  } else if (currentMode === "custom") {
+    promptLine.textContent = "Custom text (chunk " + customChunkIndex + "/" + customChunks.length + "). Press any key.";
+  } else {
+    promptLine.textContent = "Press any key to start typing";
+  }
+  wpmEl.textContent = "0";
+  accEl.textContent = "100%";
+  streakEl.textContent = "0";
+  comboEl.textContent = "x1";
+  comboEl.classList.remove("active");
+  comboStat.classList.remove("combo-highlight");
+  setIdleState(true);
+}
+
+function renderText() {
+  var ghostIdx = (currentMode === "ghost" && started && !finished) ? Math.floor(ghostPos) : -1;
+  var html = "";
+  for (var i = 0; i < currentText.length; i++) {
+    var cls = charStates[i];
+    if (i === cursorPos && !finished) cls = "current";
+    var extra = "";
+    if (i === ghostIdx && i !== cursorPos) extra = " ghost-marker";
+    var ch = currentText[i] === " " ? "&nbsp;" : escapeHtml(currentText[i]);
+    html += '<span class="char ' + cls + extra + '">' + ch + '</span>';
+  }
+  textDisplay.innerHTML = html;
+}
+
+function escapeHtml(c) {
+  if (c === "<") return "&lt;";
+  if (c === ">") return "&gt;";
+  if (c === "&") return "&amp;";
+  if (c === '"') return "&quot;";
+  return c;
+}
+
+function updateStats() {
+  if (!started || !startTime) return;
+  var elapsed = (performance.now() - startTime) / 1000 / 60;
+  if (elapsed <= 0) return;
+  var wpm = Math.round((totalCorrect / 5) / elapsed);
+  var acc = totalTyped > 0 ? Math.round((totalCorrect / totalTyped) * 100) : 100;
+  var flow = calcFlowScore(wpm, acc, streak);
+  document.getElementById("flow-val").textContent = flow;
+  wpmEl.textContent = wpm;
+  accEl.textContent = acc + "%";
+  streakEl.textContent = streak;
+  comboEl.textContent = "x" + combo;
+  if (combo > 1) {
+    comboEl.classList.add("active");
+    comboStat.classList.add("combo-highlight");
+  } else {
+    comboEl.classList.remove("active");
+    comboStat.classList.remove("combo-highlight");
+  }
+  progressBar.style.width = Math.round((cursorPos / currentText.length) * 100) + "%";
+
+  if (streak > 20) { streakFire.classList.add("visible"); }
+  else { streakFire.classList.remove("visible"); }
+
+  if (currentMode === "ghost" && started && !finished) {
+    ghostPos = elapsed * ghostWPM * 5;
+    if (ghostPos >= currentText.length && !ghostFinished) ghostFinished = true;
+    var diff = cursorPos - Math.floor(ghostPos);
+    if (diff > 0) {
+      promptLine.innerHTML = '<span class="ghost-status ghost-ahead">You\'re ' + diff + ' chars ahead!</span> Keep going!';
+    } else if (diff < 0) {
+      promptLine.innerHTML = '<span class="ghost-status ghost-behind">Ghost is ' + Math.abs(diff) + ' chars ahead.</span> Speed up!';
+    } else {
+      promptLine.innerHTML = '<span class="ghost-status">Neck and neck!</span>';
+    }
+    renderText();
+  }
+}
+
+function recordError(expected, typed, posInWord, wordLen, word) {
+  var ek = expected.toLowerCase();
+  var tk = typed.toLowerCase();
+  var subKey = ek + ">" + tk;
+  model.substitutions[subKey] = (model.substitutions[subKey] || 0) + 1;
+  model.keyErrors[ek] = (model.keyErrors[ek] || 0) + 1;
+  if (wordLen > 0) {
+    var ratio = posInWord / wordLen;
+    if (ratio < 0.33) model.positionalErrors.start++;
+    else if (ratio < 0.66) model.positionalErrors.middle++;
+    else model.positionalErrors.end++;
+  }
+  if (word) model.wordErrors[word] = (model.wordErrors[word] || 0) + 1;
+}
+
+function recordBigramTiming(pos, ms) {
+  if (pos < 1) return;
+  var bg = currentText.substring(pos - 1, pos + 1).toLowerCase();
+  if (bg.length < 2 || bg.includes(" ")) return;
+  if (!model.slowBigrams[bg]) model.slowBigrams[bg] = { totalMs: 0, count: 0 };
+  model.slowBigrams[bg].totalMs += ms;
+  model.slowBigrams[bg].count++;
+}
+
+function recordTrigramTiming(pos, ms) {
+  if (pos < 2) return;
+  var tg = currentText.substring(pos - 2, pos + 1).toLowerCase();
+  if (tg.length < 3 || tg.includes(" ")) return;
+  if (!model.slowTrigrams) model.slowTrigrams = {};
+  if (!model.slowTrigrams[tg]) model.slowTrigrams[tg] = { totalMs: 0, count: 0 };
+  model.slowTrigrams[tg].totalMs += ms;
+  model.slowTrigrams[tg].count++;
+}
+
+function getWordAtPos(pos) {
+  var start = pos, end = pos;
+  while (start > 0 && currentText[start - 1] !== " ") start--;
+  while (end < currentText.length && currentText[end] !== " ") end++;
+  return { word: currentText.substring(start, end), posInWord: pos - start, wordLen: end - start };
+}
+
+function generateShareText(wpm, acc, bestStreak) {
+  var topErrors = Object.entries(model.keyErrors).sort(function(a, b) { return b[1] - a[1]; }).slice(0, 3).map(function(e) { return e[0]; });
+  var weakStr = topErrors.length > 0 ? " | My weakest keys: " + topErrors.join(", ") : "";
+  return "\ud83d\udd24 EchoType | " + wpm + " WPM | " + acc + "% accuracy | Streak: " + bestStreak + weakStr;
+}
+
+function finishRound() {
+  finished = true;
+  renderText();
+  var elapsed = (performance.now() - startTime) / 1000 / 60;
+  if (elapsed <= 0) { startRound(); return; }
+  var wpm = Math.round((totalCorrect / 5) / elapsed);
+  var acc = totalTyped > 0 ? Math.round((totalCorrect / totalTyped) * 100) : 100;
+
+  model.totalCharsTyped += totalTyped;
+  model.lastSessionWPM = wpm;
+  if (wpm > model.bestWPM) model.bestWPM = wpm;
+  model.sessions.push({ wpm: wpm, acc: acc, ts: Date.now() });
+  if (model.sessions.length > 100) model.sessions = model.sessions.slice(-100);
+
+  if (currentMode === "daily") {
+    var key = getTodayKey();
+    if (!model.dailyBest[key] || wpm > model.dailyBest[key].wpm) {
+      model.dailyBest[key] = { wpm: wpm, acc: acc };
+    }
+    updateDailyDot();
+  }
+
+  sessionRoundsCount++;
+
+  var ghostMargin = 0;
+  if (currentMode === "ghost") {
+    ghostMargin = wpm - ghostWPM;
+  }
+
+  saveModel();
+  updateKeyboardHeatmap();
+  drawGraph();
+  drawDNA("dna-canvas", 200);
+  updateDNAInfo();
+
+  var sessionData = { wpm: wpm, acc: acc, mode: currentMode, ghostMargin: ghostMargin };
+  checkAchievements(sessionData);
+
+  showOverlay(wpm, acc, maxStreak);
+  setIdleState(true);
+}
+
+function showOverlay(wpm, acc, bestStreak) {
+  var overlay = document.getElementById("overlay");
+  var card = document.getElementById("overlay-card");
+  var improvement = model.sessions.length > 1
+    ? wpm - model.sessions[model.sessions.length - 2].wpm
+    : 0;
+  var impStr = improvement > 0 ? "+" + improvement : "" + improvement;
+  var impColor = improvement >= 0 ? "var(--green)" : "var(--red)";
+
+  var ghostResult = "";
+  if (currentMode === "ghost") {
+    var ghostFinalPos = Math.floor(ghostPos);
+    if (cursorPos > ghostFinalPos) {
+      ghostResult = '<div class="ghost-result" style="color:var(--green)">You beat the ghost by ' + (cursorPos - ghostFinalPos) + ' chars!</div>';
+    } else if (ghostFinalPos > cursorPos) {
+      ghostResult = '<div class="ghost-result" style="color:var(--red)">Ghost was ' + (ghostFinalPos - cursorPos) + ' chars ahead</div>';
+    } else {
+      ghostResult = '<div class="ghost-result" style="color:var(--yellow)">Perfect tie with the ghost!</div>';
+    }
+  }
+
+  var dailyInfo = "";
+  if (currentMode === "daily") {
+    var best = model.dailyBest[getTodayKey()];
+    dailyInfo = '<div class="detail" style="color:var(--cyan)">Daily Best: ' + (best ? best.wpm + ' WPM' : wpm + ' WPM') + '</div>';
+  }
+
+  card.innerHTML =
+    '<h2>Round Complete!</h2>' +
+    '<div class="big-stat" style="color:var(--cyan)">' + wpm + ' <span style="font-size:1rem;color:var(--dim)">WPM</span></div>' +
+    '<div class="detail">Accuracy: <strong style="color:var(--green)">' + acc + '%</strong></div>' +
+    '<div class="detail">Best Streak: <strong style="color:var(--yellow)">' + bestStreak + '</strong></div>' +
+    (model.sessions.length > 1 ? '<div class="detail">vs Last: <strong style="color:' + impColor + '">' + impStr + ' WPM</strong></div>' : '') +
+    ghostResult + dailyInfo +
+    '<canvas id="dna-mini" width="120" height="120"></canvas>' +
+    '<div class="detail" style="font-size:.7rem;color:var(--dim)">Your Typing DNA</div>' +
+    '<div class="detail" style="margin-top:8px;color:var(--dim);font-size:.75rem">Sessions: ' + model.sessions.length + ' &middot; Total chars: ' + model.totalCharsTyped.toLocaleString() + '</div>' +
+    '<div><button id="btn-next">Next Round</button>' +
+    '<button id="btn-share" class="btn-share">Share</button>' +
+    '<button id="btn-reset" class="btn-secondary">Reset</button></div>';
+
+  overlay.classList.add("show");
+  setTimeout(function() { drawDNA("dna-mini", 120); }, 50);
+
+  document.getElementById("btn-next").onclick = function() {
+    overlay.classList.remove("show");
+    setTimeout(startRound, 200);
+  };
+  document.getElementById("btn-share").onclick = function() {
+    var text = generateShareText(wpm, acc, bestStreak);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function() {
+        document.getElementById("btn-share").textContent = "Copied!";
+        setTimeout(function() { document.getElementById("btn-share").textContent = "Share"; }, 1500);
+      });
+    } else {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      document.getElementById("btn-share").textContent = "Copied!";
+      setTimeout(function() { document.getElementById("btn-share").textContent = "Share"; }, 1500);
+    }
+  };
+  document.getElementById("btn-reset").onclick = function() {
+    if (confirm("Reset all error data and session history?")) {
+      model = freshModel();
+      saveModel();
+      updateKeyboardHeatmap();
+      drawGraph();
+      drawDNA("dna-canvas", 200);
+      updateDNAInfo();
+      updateTrophyBadge();
+      updateDailyDot();
+      overlay.classList.remove("show");
+      setTimeout(startRound, 200);
+    }
+  };
+}
+
+/* ── Input handling ── */
+document.addEventListener("keydown", function(e) {
+  var k = e.key.toLowerCase();
+  if (keyEls[k]) {
+    keyEls[k].classList.add("pressed");
+  } else if (e.key === " " && keyEls[" "]) {
+    keyEls[" "].classList.add("pressed");
+  }
+  if (document.getElementById("onboard-overlay").classList.contains("show")) return;
+  if (document.getElementById("ach-overlay").classList.contains("show")) {
+    if (e.key === "Escape") document.getElementById("ach-overlay").classList.remove("show");
+    return;
+  }
+  if (document.getElementById("overlay").classList.contains("show")) {
+    if (e.key === "Enter") {
+      document.getElementById("overlay").classList.remove("show");
+      setTimeout(startRound, 200);
+    }
+    return;
+  }
+  if (finished) return;
+  if (currentMode === "custom" && customInputArea.classList.contains("visible")) return;
+
+  if (e.key === "Escape") { startRound(); return; }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key.length > 1 && e.key !== "Backspace") return;
+
+  e.preventDefault();
+  resetIdleTimer();
+
+  if (e.key === "Backspace") {
+    if (cursorPos > 0) {
+      cursorPos--;
+      charStates[cursorPos] = "pending";
+      renderText();
+      updateStats();
+    }
+    return;
+  }
+
+  if (!started) {
+    started = true;
+    startTime = performance.now();
+    lastKeyTime = startTime;
+    if (currentMode !== "ghost") {
+      promptLine.textContent = "Keep typing\u2026 Press Esc to restart";
+    }
+  }
+
+  var now = performance.now();
+  var dt = now - lastKeyTime;
+  lastKeyTime = now;
+
+  if (cursorPos >= currentText.length) return;
+
+  var expected = currentText[cursorPos];
+  var typed = e.key;
+  totalTyped++;
+
+  if (typed === expected) {
+    charStates[cursorPos] = "correct";
+    totalCorrect++;
+    streak++;
+    if (streak > maxStreak) maxStreak = streak;
+    combo = 1 + Math.floor(streak / 10);
+
+    recordBigramTiming(cursorPos, dt);
+    recordTrigramTiming(cursorPos, dt);
+    playClick(true);
+
+    if (streak > 5 && streak % 3 === 0) {
+      var charEl = textDisplay.children[cursorPos];
+      if (charEl) {
+        var r = charEl.getBoundingClientRect();
+        spawnParticle(r.left + r.width / 2, r.top);
+      }
+    }
+  } else {
+    charStates[cursorPos] = "wrong";
+    streak = 0;
+    combo = 1;
+
+    var wordInfo = getWordAtPos(cursorPos);
+    recordError(expected, typed, wordInfo.posInWord, wordInfo.wordLen, wordInfo.word);
+    recordBigramTiming(cursorPos, dt);
+    recordTrigramTiming(cursorPos, dt);
+    playClick(false);
+  }
+
+  charTimestamps[cursorPos] = now;
+  cursorPos++;
+  renderText();
+  updateStats();
+
+  if (cursorPos >= currentText.length) {
+    finishRound();
+  }
+});
+
+/* ── Sound toggle ── */
+document.getElementById("sound-btn").addEventListener("click", function() {
+  soundEnabled = !soundEnabled;
+  this.textContent = soundEnabled ? "Sound On" : "Sound Off";
+  this.classList.toggle("on", soundEnabled);
+  if (soundEnabled && !audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+  }
+});
+
+/* ── Key release animation ── */
+document.addEventListener("keyup", function(e) {
+  var k = e.key.toLowerCase();
+  if (keyEls[k]) keyEls[k].classList.remove("pressed");
+  else if (e.key === " " && keyEls[" "]) keyEls[" "].classList.remove("pressed");
+});
+
+/* ── Tabs ── */
+document.querySelectorAll(".tab").forEach(function(tab) {
+  tab.addEventListener("click", function() {
+    document.querySelectorAll(".tab").forEach(function(t) { t.classList.remove("active"); });
+    tab.classList.add("active");
+    currentMode = tab.dataset.mode;
+    if (currentMode === "custom") {
+      if (customChunks.length === 0) {
+        showCustomUI();
+        return;
+      }
+      hideCustomUI();
+    } else {
+      hideCustomUI();
+    }
+    startRound();
+  });
+});
+
+/* ── Trophy button ── */
+document.getElementById("trophy-btn").addEventListener("click", showAchievementGallery);
+
+/* ── Animation loop ── */
+function tick() {
+  updateParticles();
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+setInterval(updateStats, 200);
+
+/* ── Init ── */
+if (isMobile()) {
+  document.getElementById("mobile-banner").style.display = "block";
+}
+
+updateTrophyBadge();
+updateDailyDot();
+loadCorpus();
+
+setTimeout(function() {
+  document.getElementById("app").classList.add("ready");
+  showOnboarding();
+}, 50);
+
+})();
+</script>
+</body>
+</html>
