@@ -1368,11 +1368,12 @@ function showOverlay(wpm, acc, bestStreak) {
     dailyInfo = '<div class="detail" style="color:var(--cyan)">Daily Best: ' + (best ? best.wpm + ' WPM' : wpm + ' WPM') + '</div>';
   }
 
+  var flowScore = calcFlowScore(wpm, acc, bestStreak);
+
   card.innerHTML =
     '<h2>Round Complete!</h2>' +
-    '<div class="big-stat" style="color:var(--cyan)">' + wpm + ' <span style="font-size:1rem;color:var(--dim)">WPM</span></div>' +
-    '<div class="detail">Accuracy: <strong style="color:var(--green)">' + acc + '%</strong></div>' +
-    '<div class="detail">Best Streak: <strong style="color:var(--yellow)">' + bestStreak + '</strong></div>' +
+    '<div class="big-stat" style="color:var(--cyan)">' + flowScore + ' <span style="font-size:1rem;color:var(--dim)">Flow Score</span></div>' +
+    '<div class="detail" style="font-size:.9rem;color:var(--dim)">' + wpm + ' WPM &middot; ' + acc + '% accuracy &middot; streak ' + bestStreak + '</div>' +
     (model.sessions.length > 1 ? '<div class="detail">vs Last: <strong style="color:' + impColor + '">' + impStr + ' WPM</strong></div>' : '') +
     ghostResult + dailyInfo +
     '<canvas id="dna-mini" width="120" height="120"></canvas>' +
