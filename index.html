@@ -1376,15 +1376,15 @@ function showOverlay(wpm, acc, bestStreak) {
     '<div class="detail" style="font-size:.9rem;color:var(--dim)">' + wpm + ' WPM &middot; ' + acc + '% accuracy &middot; streak ' + bestStreak + '</div>' +
     (model.sessions.length > 1 ? '<div class="detail">vs Last: <strong style="color:' + impColor + '">' + impStr + ' WPM</strong></div>' : '') +
     ghostResult + dailyInfo +
-    '<canvas id="dna-mini" width="120" height="120"></canvas>' +
-    '<div class="detail" style="font-size:.7rem;color:var(--dim)">Your Typing DNA</div>' +
+    '<canvas id="dna-mini" width="180" height="180" style="margin:12px auto;display:block"></canvas>' +
+    '<div class="detail" style="font-size:.72rem;color:var(--dim);max-width:280px;margin:0 auto;line-height:1.5">Each spike = a weak key. The bigger the spike, the more errors on that key. Practice shrinks the spikes.</div>' +
     '<div class="detail" style="margin-top:8px;color:var(--dim);font-size:.75rem">Sessions: ' + model.sessions.length + ' &middot; Total chars: ' + model.totalCharsTyped.toLocaleString() + '</div>' +
     '<div><button id="btn-next">Next Round</button>' +
     '<button id="btn-share" class="btn-share">Share</button>' +
     '<button id="btn-reset" class="btn-secondary">Reset</button></div>';
 
   overlay.classList.add("show");
-  setTimeout(function() { drawDNA("dna-mini", 120); }, 50);
+  setTimeout(function() { drawDNA("dna-mini", 180); }, 50);
 
   document.getElementById("btn-next").onclick = function() {
     overlay.classList.remove("show");
