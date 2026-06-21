@@ -1377,14 +1377,27 @@ function showOverlay(wpm, acc, bestStreak) {
     (model.sessions.length > 1 ? '<div class="detail">vs Last: <strong style="color:' + impColor + '">' + impStr + ' WPM</strong></div>' : '') +
     ghostResult + dailyInfo +
     '<canvas id="dna-mini" width="180" height="180" style="margin:12px auto;display:block"></canvas>' +
-    '<div class="detail" style="font-size:.72rem;color:var(--dim);max-width:280px;margin:0 auto;line-height:1.5">Each spike = a weak key. The bigger the spike, the more errors on that key. Practice shrinks the spikes.</div>' +
+    '<div class="detail" style="font-size:.75rem;color:var(--dim);max-width:300px;margin:0 auto;line-height:1.6" id="weakness-summary"></div>' +
     '<div class="detail" style="margin-top:8px;color:var(--dim);font-size:.75rem">Sessions: ' + model.sessions.length + ' &middot; Total chars: ' + model.totalCharsTyped.toLocaleString() + '</div>' +
     '<div><button id="btn-next">Next Round</button>' +
     '<button id="btn-share" class="btn-share">Share</button>' +
     '<button id="btn-reset" class="btn-secondary">Reset</button></div>';
 
   overlay.classList.add("show");
-  setTimeout(function() { drawDNA("dna-mini", 180); }, 50);
+  setTimeout(function() {
+    drawDNA("dna-mini", 180);
+    var summaryEl = document.getElementById("weakness-summary");
+    if (summaryEl) {
+      var errs = model.keyErrors;
+      var sorted = Object.entries(errs).sort(function(a,b){return b[1]-a[1]}).slice(0,5);
+      if (sorted.length > 0) {
+        var topKeys = sorted.map(function(e){return '<span style="color:var(--red);font-weight:700">' + e[0].toUpperCase() + '</span> (' + e[1] + 'x)';}).join(', ');
+        summaryEl.innerHTML = 'Your weakest keys: ' + topKeys + '<br><span style="color:var(--cyan)">Next round will target these patterns.</span>';
+      } else {
+        summaryEl.textContent = 'Keep typing to build your error profile.';
+      }
+    }
+  }, 50);
 
   document.getElementById("btn-next").onclick = function() {
     overlay.classList.remove("show");
